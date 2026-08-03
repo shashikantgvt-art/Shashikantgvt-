@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>मेस डबा ट्रॅकर - प्रोफेशनल</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; overflow: hidden; }
+    </style>
+</head>
+<body class="bg-slate-100 h-screen w-screen flex items-center justify-center p-2">
+
+    <div class="max-w-md w-full h-[96vh] bg-white rounded-2xl shadow-xl flex flex-col justify-between p-4 border border-slate-200">
+        
+        <!-- Header & Edit Mode Toggle -->
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div class="flex items-center space-x-2.5">
+                <div class="bg-slate-900 text-white p-2 rounded-xl shadow-sm">
+                    <i class="fas fa-calendar-alt text-xs"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold text-slate-800 leading-tight">मेस डबा ट्रॅकर</h1>
+                    <span class="text-[10px] text-slate-500 font-medium">डेटा रेकॉर्ड पोर्टल</span>
+                </div>
+            </div>
+            <!-- एडिट/अनलॉक मोड बटन -->
+            <button id="editModeToggle" onclick="toggleEditMode()" class="bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold hover:bg-slate-200 transition-all flex items-center gap-1 border border-slate-300">
+                <i id="editIcon" class="fas fa-lock"></i> <span id="editText">लॉक मोड</span>
+            </button>
+        </div>
+
+        <!-- महिना आणि वर्ष नेव्हिगेशन -->
+        <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-200 my-2">
+            <button id="prevMonth" class="bg-white text-slate-700 px-3 py-1 rounded-lg shadow-sm hover:bg-slate-100 font-semibold text-xs transition-all border border-slate-200"><i class="fas fa-chevron-left"></i></button>
+            <h2 id="monthYearDisplay" class="text-xs font-bold text-slate-800"></h2>
+            <button id="nextMonth" class="bg-white text-slate-700 px-3 py-1 rounded-lg shadow-sm hover:bg-slate-100 font-semibold text-xs transition-all border border-slate-200"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <!-- टोटल काऊंट बॉक्स (Professional Cards) -->
+        <div class="grid grid-cols-2 gap-3 my-1">
+            <div class="bg-slate-900 text-white p-3 rounded-xl shadow-sm flex flex-col items-center justify-center">
+                <span class="text-[10px] uppercase tracking-wider text-slate-400 font-medium">सकाळचा डबा</span>
+                <p id="totalMorning" class="text-2xl font-bold mt-0.5">0</p>
+            </div>
+            <div class="bg-slate-800 text-white p-3 rounded-xl shadow-sm flex flex-col items-center justify-center border border-slate-700">
+                <span class="text-[10px] uppercase tracking-wider text-slate-400 font-medium">संध्याकाळचा डबा</span>
+                <p id="totalEvening" class="text-2xl font-bold mt-0.5">0</p>
+            </div>
+        </div>
+
+        <!-- वार (Days Header) -->
+        <div class="grid grid-cols-7 gap-1 text-center font-semibold text-slate-400 text-[10px] my-1">
+            <span class="text-red-500">सोम</span><span>मंगळ</span><span>बुध</span><span>गुरु</span><span>शुक्र</span><span>शनी</span><span class="text-red-500">रव</span>
+        </div>
+
+        <!-- कॅलेंडर ग्रिड -->
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1.5 flex-grow content-start overflow-y-auto"></div>
+
+        <!-- इन्स्ट्रक्शन फूटर -->
+        <div class="text-center text-[10px] text-slate-500 flex justify-center items-center space-x-4 bg-slate-50 py-2 rounded-xl border border-slate-200 mt-2">
+            <span class="flex items-center"><span class="w-2.5 h-2.5 bg-emerald-600 rounded-sm inline-block mr-1"></span> चालू (Active)</span>
+            <span class="flex items-center"><span class="w-2.5 h-2.5 bg-slate-200 rounded-sm inline-block mr-1 border border-slate-300"></span> बंद (Off)</span>
+            <span class="flex items-center text-amber-600 font-semibold"><i class="fas fa-star text-[9px] mr-1"></i> सण</span>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDyAqz5_6-i7xIlPAdMUBhdVCZwV262Prw",
+            authDomain: "ridefix-final.firebaseapp.com",
+            projectId: "ridefix-final",
+            storageBucket: "ridefix-final.firebasestorage.app",
+            messagingSenderId: "175554582400",
+            appId: "1:175554582400:web:f40c9b80354d6963ab1365"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+        let monthlyData = {};
+        let isEditMode = false;
+
+        const monthNames = ["जानेवारी", "फेब्रुवारी", "मार्च", "एप्रिल", "मे", "जून", "जुलै", "ऑगस्ट", "सप्टेंबर", "ऑक्टोबर", "नोव्हेंबर", "डिसेंबर"];
+
+        const festivals = {
+            "2026-01-14": "मकर संक्रांत",
+            "2026-01-26": "प्रजासत्ताक दिन",
+            "2026-02-15": "महाशिवरात्री",
+            "2026-03-03": "होळी",
+            "2026-03-19": "गुढी पाडवा",
+            "2026-03-31": "रमजान ईद",
+            "2026-04-14": "डॉ. बाबासाहेब आंबेडकर जयंती",
+            "2026-05-01": "महाराष्ट्र दिन",
+            "2026-08-15": "स्वातंत्र्य दिन",
+            "2026-08-28": "रक्षाबंधन",
+            "2026-09-04": "जन्माष्टमी",
+            "2026-09-14": "गणेश चतुर्थी",
+            "2026-10-02": "गांधी जयंती",
+            "2026-10-20": "दसरा",
+            "2026-11-08": "दिवाळी",
+            "2026-12-25": "नाताळ"
+        };
+
+        window.toggleEditMode = function() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById("editModeToggle");
+            const icon = document.getElementById("editIcon");
+            const text = document.getElementById("editText");
+
+            if(isEditMode) {
+                btn.className = "bg-amber-50 text-amber-800 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold hover:bg-amber-100 transition-all flex items-center gap-1 border border-amber-300";
+                icon.className = "fas fa-unlock";
+                text.innerText = "अनलॉक (Edit On)";
+            } else {
+                btn.className = "bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold hover:bg-slate-200 transition-all flex items-center gap-1 border border-slate-300";
+                icon.className = "fas fa-lock";
+                text.innerText = "लॉक मोड";
+            }
+        }
+
+        async function loadMonthData() {
+            const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            document.getElementById("monthYearDisplay").innerText = `${monthNames[currentMonth]} ${currentYear}`;
+
+            const dbRef = ref(db, `messRecords/${monthKey}`);
+            try {
+                const snapshot = await get(dbRef);
+                monthlyData = snapshot.exists() ? snapshot.val() : {};
+            } catch (error) {
+                monthlyData = {};
+            }
+
+            renderCalendar();
+            updateTotals();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById("calendarGrid");
+            grid.innerHTML = "";
+
+            const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+            let startingSpace = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+            const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            for (let i = 0; i < startingSpace; i++) {
+                grid.innerHTML += `<div></div>`;
+            }
+
+            for (let day = 1; day <= totalDays; day++) {
+                const dayKey = `day_${day}`;
+                const dayData = monthlyData[dayKey] || { morning: false, evening: false };
+
+                const formattedMonth = String(currentMonth + 1).padStart(2, '0');
+                const formattedDay = String(day).padStart(2, '0');
+                const fullDateStr = `${currentYear}-${formattedMonth}-${formattedDay}`;
+                const festivalName = festivals[fullDateStr];
+
+                const dayDiv = document.createElement("div");
+                const borderStyle = festivalName ? "border-amber-300 bg-amber-50/40" : "border-slate-200 bg-white";
+                dayDiv.className = `${borderStyle} border rounded-xl p-1 flex flex-col justify-between items-center shadow-2xs h-[52px]`;
+                
+                dayDiv.innerHTML = `
+                    <div class="w-full flex justify-between items-center px-1 bg-slate-50 rounded-t-md">
+                        <span class="text-[9px] font-bold text-slate-700">${day}</span>
+                        ${festivalName ? `<i class="fas fa-star text-[8px] text-amber-500" title="${festivalName}"></i>` : ''}
+                    </div>
+                    <div class="flex space-x-1.5 my-auto">
+                        <button onclick="window.toggleMeal(${day}, 'morning')" class="w-3.5 h-3.5 rounded-sm transition-all ${dayData.morning ? 'bg-emerald-600 shadow-2xs' : 'bg-slate-200 hover:bg-slate-300'}" title="सकाळचा डबा"></button>
+                        <button onclick="window.toggleMeal(${day}, 'evening')" class="w-3.5 h-3.5 rounded-sm transition-all ${dayData.evening ? 'bg-emerald-600 shadow-2xs' : 'bg-slate-200 hover:bg-slate-300'}" title="संध्याकाळचा डबा"></button>
+                    </div>
+                    <span class="text-[7px] text-amber-700 truncate w-full text-center px-0.5 font-medium">${festivalName || ''}</span>
+                `;
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        window.toggleMeal = async function(day, mealType) {
+            const monthKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            const dayKey = `day_${day}`;
+
+            if (!monthlyData[dayKey]) {
+                monthlyData[dayKey] = { morning: false, evening: false };
+            }
+
+            if (monthlyData[dayKey][mealType] === true && !isEditMode) {
+                alert("हा डबा लॉक आहे! बदलण्यासाठी वरील 'लॉक मोड' अनलॉकर करा.");
+                return;
+            }
+
+            monthlyData[dayKey][mealType] = !monthlyData[dayKey][mealType];
+
+            const dbRef = ref(db, `messRecords/${monthKey}/${dayKey}`);
+            await set(dbRef, monthlyData[dayKey]);
+
+            renderCalendar();
+            updateTotals();
+        }
+
+        function updateTotals() {
+            let morningTotal = 0;
+            let eveningTotal = 0;
+
+            for (let key in monthlyData) {
+                if (monthlyData[key] && monthlyData[key].morning) morningTotal++;
+                if (monthlyData[key] && monthlyData[key].evening) eveningTotal++;
+            }
+
+            document.getElementById("totalMorning").innerText = morningTotal;
+            document.getElementById("totalEvening").innerText = eveningTotal;
+        }
+
+        document.getElementById("prevMonth").addEventListener("click", () => {
+            currentMonth--;
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            loadMonthData();
+        });
+
+        document.getElementById("nextMonth").addEventListener("click", () => {
+            currentMonth++;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            loadMonthData();
+        });
+
+        loadMonthData();
+    </script>
+</body>
+</html>
