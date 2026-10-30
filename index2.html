@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Om Sai Mobile - Diwali Giveaway</title>
+<style>
+:root { --gold:#ffdc72; --purple:#2b1050; --deep:#090515; }
+* { box-sizing:border-box; }
+body {
+  margin:0; min-height:100vh; color:#fff; font-family:Arial,sans-serif;
+  background:radial-gradient(ellipse at top,#35145e 0%,#170b2e 48%,#080411 100%);
+  display:flex; justify-content:center;
+}
+.app { width:min(100%,560px); padding:22px 16px 34px; text-align:center; overflow:hidden; }
+.brand {
+  font-size:clamp(24px,6vw,34px); font-weight:900; color:#ffdc72;
+  text-shadow:0 0 15px rgba(255,194,51,.55); letter-spacing:1px; margin:10px 0 8px;
+}
+.brand-sub {
+  display:inline-block; padding:8px 16px; border:1px solid #ffdc72; border-radius:30px;
+  color:#fff0a5; font-size:13px; font-weight:800; letter-spacing:2px; margin-bottom:18px;
+}
+.topbar { display:flex; justify-content:flex-end; margin-bottom:12px; }
+.refresh {
+  border:1px solid rgba(255,255,255,.35); color:#2b1050; font-weight:800;
+  background:linear-gradient(135deg,#fff0a5,#ffbf39); border-radius:14px;
+  padding:10px 15px; font-size:15px; box-shadow:0 4px 0 #a95c08; cursor:pointer;
+}
+.eyebrow { color:var(--gold); font-size:13px; font-weight:800; letter-spacing:4px; margin-top:12px; }
+h1 { font-size:clamp(36px,9vw,58px); line-height:1; margin:16px 0 10px; font-weight:900; }
+.subtitle { color:#d8c8f4; font-size:clamp(16px,4vw,21px); margin:0 0 26px; }
+.wheel-area { width:min(88vw,440px); aspect-ratio:1; position:relative; margin:0 auto 30px; }
+.wheel-frame {
+  position:absolute; inset:0; border-radius:50%; padding:9px;
+  background:linear-gradient(135deg,#fff0a3,#ffb72d,#fff2a4,#a85b11,#ffe68a);
+  box-shadow:0 0 0 3px rgba(255,224,118,.35), 0 0 32px rgba(255,194,51,.38);
+}
+.wheel-window { width:100%; height:100%; border-radius:50%; overflow:hidden; background:#1a0c2d; }
+.wheel { width:100%; height:100%; object-fit:cover; display:block; border-radius:50%; transform:rotate(0deg); will-change:transform; }
+.hub-cover {
+  position:absolute; width:17%; aspect-ratio:1; border-radius:50%; left:50%; top:50%;
+  transform:translate(-50%,-50%); pointer-events:none;
+  background:radial-gradient(circle,#1a0c2d 0 63%,rgba(26,12,45,.94) 64% 76%,transparent 78%);
+}
+.pointer {
+  position:absolute; z-index:5; left:50%; top:-5px; transform:translateX(-50%);
+  width:0; height:0; border-left:25px solid transparent; border-right:25px solid transparent;
+  border-top:48px solid #ff3167; filter:drop-shadow(0 4px 5px rgba(0,0,0,.45));
+}
+.buttons { display:flex; justify-content:center; gap:14px; align-items:center; }
+.spin {
+  min-width:0; width:62%; border:0; border-radius:999px; padding:19px 10px;
+  color:#35134f; font-size:clamp(18px,5vw,25px); font-weight:900;
+  background:linear-gradient(135deg,#fff0a4,#ffc43f); box-shadow:0 7px 0 #a95c08;
+  cursor:pointer; transition:filter .2s,transform .2s;
+}
+.spin:active:not(:disabled) { transform:translateY(4px); box-shadow:0 3px 0 #a95c08; }
+.spin:disabled { opacity:.55; filter:grayscale(.25); cursor:not-allowed; }
+.hint { margin:24px auto 0; color:#c5b4e4; font-size:14px; line-height:1.6; max-width:390px; }
+#celebration { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:10; display:none; }
+.confetti { position:absolute; top:-20px; width:9px; height:15px; opacity:.95; animation:fall var(--duration) linear forwards; }
+@keyframes fall { to { transform:translate3d(var(--drift),110vh,0) rotate(900deg); opacity:.8; } }
+@media(max-width:360px) {
+  .app { padding-inline:11px; } .wheel-area { width:90vw; }
+  .spin { width:100%; padding:16px 7px; } .buttons { gap:10px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <button class="refresh" id="refreshBtn" type="button">↻ REFRESH</button>
+  </div>
+  <div class="brand">🪔 OM SAI MOBILE 🪔</div>
+  <div class="brand-sub">✨ SPECIAL DIWALI GIVEAWAY ✨</div>
+  <div class="eyebrow">🎁 FESTIVE SPECIAL 🎁</div>
+  <h1>LUCKY SPIN</h1>
+  <p class="subtitle">Spin करा... आणि पाहा कोणतं बक्षीस मिळतं! 🎉</p>
+  <div class="wheel-area" aria-label="Lucky spin wheel">
+    <div class="pointer" aria-hidden="true"></div>
+    <div class="wheel-frame">
+      <div class="wheel-window">
+        <img id="wheelImage" class="wheel" alt="Prize wheel">
+      </div>
+    </div>
+    <div class="hub-cover" aria-hidden="true"></div>
+  </div>
+  <div class="buttons">
+    <button class="spin" id="spinBtn" type="button">🎡 SPIN NOW</button>
+  </div>
+  <p class="hint" id="hint">SPIN NOW दाबा. पुन्हा spin करण्यासाठी REFRESH दाबा.</p>
+</div>
+<div id="celebration"></div>
+
+<!-- ही MP3 फाइल index.html च्याच फोल्डरमध्ये ठेवा -->
+<audio id="diwaliSong" src="happy-diwali.mp3" preload="auto"></audio>
+
+<script>
+const IMAGE_URL = "https://i.ibb.co/JFsS3p7M/file-000000004d10820ba5f940a750850347.png";
+const wheel = document.getElementById("wheelImage");
+const spinBtn = document.getElementById("spinBtn");
+const refreshBtn = document.getElementById("refreshBtn");
+const hint = document.getElementById("hint");
+const celebration = document.getElementById("celebration");
+const diwaliSong = document.getElementById("diwaliSong");
+
+wheel.src = IMAGE_URL;
+
+let spinning = false;
+let hasSpun = false;
+let rotation = 0;
+let finishTimer;
+let spinTimer;
+let songTimer = null;
+
+/* Spin सुरू असताना suspense sound */
+let audioCtx = null;
+let suspenseTimer = null;
+let musicNodes = [];
+let musicStopped = true;
+
+function getAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(freq, duration, type = "sine", volume = 0.16) {
+  if (musicStopped) return;
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    musicNodes.push(osc);
+    osc.onended = () => {
+      musicNodes = musicNodes.filter(node => node !== osc);
+      try { osc.disconnect(); gain.disconnect(); } catch (e) {}
+    };
+    osc.start();
+    osc.stop(ctx.currentTime + duration + 0.05);
+  } catch (e) {}
+}
+
+function stopSuspense() {
+  musicStopped = true;
+  clearInterval(suspenseTimer);
+  suspenseTimer = null;
+  musicNodes.forEach(node => { try { node.stop(); } catch (e) {} });
+  musicNodes = [];
+}
+
+function stopMusic() {
+  stopSuspense();
+  clearTimeout(songTimer);
+  songTimer = null;
+  diwaliSong.pause();
+  try { diwaliSong.currentTime = 0; } catch (e) {}
+}
+
+function startSuspense() {
+  stopMusic();
+  musicStopped = false;
+  let step = 0;
+  const notes = [220, 261, 293, 330, 293, 349, 392, 440];
+  suspenseTimer = setInterval(() => {
+    if (musicStopped || !spinning) return;
+    playTone(notes[step % notes.length], 0.48, "triangle", 0.16);
+    step++;
+  }, 340);
+}
+
+function playVictorySong() {
+  stopMusic();
+  diwaliSong.muted = false;
+  diwaliSong.volume = 1;
+  diwaliSong.currentTime = 0;
+
+  diwaliSong.play().then(() => {
+    clearTimeout(songTimer);
+    songTimer = setTimeout(() => {
+      diwaliSong.pause();
+      diwaliSong.currentTime = 0;
+    }, 30000);
+  }).catch(() => {
+    hint.textContent = "🎵 गाणं सुरू होत नसेल तर स्क्रीनवर टॅप करून पुन्हा प्रयत्न करा.";
+  });
+}
+
+wheel.onerror = () => {
+  hint.textContent = "व्हीलचा फोटो लोड झाला नाही. IMAGE_URL तपासा.";
+};
+wheel.onload = () => {
+  hint.textContent = "SPIN NOW दाबा. पुन्हा spin करण्यासाठी REFRESH दाबा.";
+};
+
+function fireworks() {
+  celebration.innerHTML = "";
+  celebration.style.display = "block";
+  const colors = ["#ffdc72","#ff3167","#45e0c1","#8e68ff","#ffffff","#ff8a35"];
+
+  for (let i = 0; i < 120; i++) {
+    const bit = document.createElement("i");
+    bit.className = "confetti";
+    bit.style.left = Math.random() * 100 + "%";
+    bit.style.background = colors[Math.floor(Math.random() * colors.length)];
+    bit.style.setProperty("--duration", (2 + Math.random() * 2.5) + "s");
+    bit.style.setProperty("--drift", (Math.random() * 240 - 120) + "px");
+    bit.style.animationDelay = (Math.random() * .8) + "s";
+    celebration.appendChild(bit);
+  }
+  clearTimeout(finishTimer);
+  finishTimer = setTimeout(() => {
+    celebration.style.display = "none";
+    celebration.innerHTML = "";
+  }, 4800);
+}
+
+spinBtn.addEventListener("click", () => {
+  if (spinning || hasSpun) return;
+  if (!wheel.complete || !wheel.naturalWidth) {
+    hint.textContent = "व्हीलचा फोटो लोड झालेला नाही. IMAGE_URL तपासा.";
+    return;
+  }
+
+  spinning = true;
+  hasSpun = true;
+  spinBtn.disabled = true;
+
+  // Click event मधूनच audio permission prime करा; प्रत्यक्ष गाणं spin संपल्यावर सुरू होईल.
+  diwaliSong.muted = true;
+  const prime = diwaliSong.play();
+  if (prime && typeof prime.then === "function") {
+    prime.then(() => {
+      diwaliSong.pause();
+      diwaliSong.currentTime = 0;
+      diwaliSong.muted = false;
+    }).catch(() => { diwaliSong.muted = false; });
+  }
+  startSuspense();
+  hint.textContent = "🎡 व्हील फिरत आहे... थोडं थांबा!";
+
+  const extra = 8 * 360 + Math.floor(Math.random() * 360);
+  rotation += extra;
+  wheel.style.transition = "transform 10s cubic-bezier(0.12, 0.72, 0.08, 1)";
+  wheel.style.transform = `rotate(${rotation}deg)`;
+
+  const finish = () => {
+    if (!spinning) return;
+    clearTimeout(spinTimer);
+    spinning = false;
+    stopSuspense();
+    playVictorySong();
+    fireworks();
+    hint.textContent = "🎉 Spin पूर्ण झाला! पुन्हा spin करण्यासाठी REFRESH दाबा.";
+    wheel.removeEventListener("transitionend", finish);
+  };
+
+  wheel.addEventListener("transitionend", finish);
+  spinTimer = setTimeout(() => { if (spinning) finish(); }, 10200);
+});
+
+refreshBtn.addEventListener("click", () => {
+  clearTimeout(finishTimer);
+  clearTimeout(spinTimer);
+  stopMusic();
+  spinning = false;
+  hasSpun = false;
+  rotation = 0;
+  wheel.style.transition = "none";
+  wheel.style.transform = "rotate(0deg)";
+  spinBtn.disabled = false;
+  celebration.style.display = "none";
+  celebration.innerHTML = "";
+  hint.textContent = "SPIN NOW दाबा. पुन्हा spin करण्यासाठी REFRESH दाबा.";
+});
+</script>
+</body>
+</html>
