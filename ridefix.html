@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ride Fix | Missing Memories</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#08090d;color:white;
+  font-family:Georgia,serif;
+  min-height:100vh;overflow:hidden
+}
+.screen{
+  min-height:100vh;display:flex;
+  justify-content:center;align-items:center;
+  text-align:center;padding:24px
+}
+#intro{
+  flex-direction:column;
+  background:radial-gradient(circle,#28203b,#08090d 75%)
+}
+.logo{
+  font:12px Arial;letter-spacing:7px;
+  color:#d6b77a;margin-bottom:28px
+}
+.intro-title{
+  font-size:clamp(35px,9vw,54px);
+  font-weight:normal;font-style:italic;
+  margin-bottom:18px
+}
+.subtitle{
+  font:13px/2 Arial;color:#aaa6b3;
+  letter-spacing:2px;margin-bottom:38px
+}
+button{
+  padding:17px 24px;
+  background:linear-gradient(135deg,#f1d69b,#b88a46);
+  color:#15110b;border:0;border-radius:4px;
+  font-weight:bold;letter-spacing:1px
+}
+.hint{
+  font:10px Arial;color:#77727e;
+  letter-spacing:2px;margin-top:24px
+}
+#memories{
+  display:none;position:relative;
+  padding:0;background:#080706
+}
+.photo{
+  position:absolute;width:100%;height:100%;
+  object-fit:contain;opacity:0;
+  transition:opacity 1.2s ease;
+}
+.photo.show{opacity:.82}
+.overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(
+    to bottom,#00000045,transparent 30%,
+    #00000050 55%,#000000e8 100%
+  )
+}
+.content{
+  position:absolute;bottom:7%;left:0;
+  width:100%;padding:20px;
+  animation:rise 2s ease
+}
+.small{
+  font:10px Arial;letter-spacing:5px;
+  color:#e5c782;margin-bottom:16px
+}
+h1{
+  font-size:clamp(35px,9vw,55px);
+  font-weight:normal;font-style:italic;
+  color:#ffe5a5;text-shadow:0 0 25px #d6a34a55
+}
+.line{
+  width:85px;height:1px;margin:18px auto;
+  background:#dfc17d
+}
+.quote{
+  color:#fff0d8;font-size:14px;
+  line-height:2;letter-spacing:.5px
+}
+.ending{
+  margin-top:20px;color:#d6b878;
+  font:10px Arial;letter-spacing:4px
+}
+.sparkle{
+  position:absolute;width:3px;height:3px;
+  border-radius:50%;background:#ffe6a0;
+  box-shadow:0 0 12px 3px #e7bb5880;
+  animation:float 7s linear infinite;
+  pointer-events:none
+}
+@keyframes float{
+  from{transform:translateY(0);opacity:0}
+  20%{opacity:1}
+  to{transform:translateY(-100vh) translateX(30px);opacity:0}
+}
+@keyframes rise{
+  from{opacity:0;transform:translateY(25px)}
+  to{opacity:1;transform:translateY(0)}
+}
+</style>
+</head>
+
+<body>
+
+<section class="screen" id="intro">
+  <div class="logo">RIDE FIX PRESENTS</div>
+  <h2 class="intro-title">Some Memories<br>Never Fade.</h2>
+  <p class="subtitle">
+    SOME PEOPLE LEAVE…<br>
+    BUT THEIR MEMORIES STAY FOREVER.
+  </p>
+  <button onclick="openMemories()">
+    ✦ &nbsp; VIEW RIDE FIX MODULE &nbsp; ✦
+  </button>
+  <div class="hint">A LITTLE JOURNEY INTO THE PAST</div>
+</section>
+
+<section class="screen" id="memories">
+  <img class="photo" id="slideshow" alt="Our memories">
+  <div class="overlay"></div>
+
+  <div class="content">
+    <div class="small">A COLLECTION OF MEMORIES</div>
+    <h1>Missing Memories...</h1>
+    <div class="line"></div>
+    <div class="quote">
+      Some moments become memories...<br>
+      Some memories become feelings. ❤️<br>
+      And some days stay in our hearts forever.
+    </div>
+    <div class="ending">FOREVER IN MY HEART ✨</div>
+  </div>
+</section>
+
+<audio id="music" loop preload="auto">
+  <source src="./song.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const photos = [
+  "https://i.ibb.co/DP1Stpvx/IMG-20261114-174815643-HDR.jpg",
+  "https://i.ibb.co/HwJKBBF/IMG-20261114-173042327-HDR-PORTRAIT.jpg",
+  "https://i.ibb.co/tMKSXTpg/IMG-20261106-124630825-HDR-PORTRAIT.jpg",
+  "https://i.ibb.co/tPTkRKL8/IMG-20261104-145251200-PORTRAIT.jpg",
+  "https://i.ibb.co/fd8y5FC2/IMG-20261101-113217412-PORTRAIT.jpg",
+  "https://i.ibb.co/RxWJjyR/IMG-20261115-WA0000.jpg",
+  "https://i.ibb.co/bgKxxCRD/Screenshot-20261115-190544-Instagram.png",
+  "https://i.ibb.co/7JQVsP0y/Screenshot-20261115-190752-Snapchat.png",
+  "https://i.ibb.co/nscJpV1w/Screenshot-20261115-190848-Snapchat.png",
+  "https://i.ibb.co/3Y5rJN7d/20261115-100633-COLLAGE.jpg"
+];
+
+let currentPhoto = 0;
+let slideshowTimer;
+
+function showPhoto(index) {
+  const img = document.getElementById("slideshow");
+  img.classList.remove("show");
+
+  setTimeout(() => {
+    img.src = photos[index];
+    img.onload = () => img.classList.add("show");
+
+    img.onerror = () => {
+      console.log("Photo could not load:", photos[index]);
+    };
+  }, 700);
+}
+
+function openMemories() {
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("memories").style.display = "flex";
+
+  showPhoto(currentPhoto);
+
+  // Change photos every 3 seconds
+  slideshowTimer = setInterval(() => {
+    currentPhoto = (currentPhoto + 1) % photos.length;
+    showPhoto(currentPhoto);
+  }, 3000);
+
+  const music = document.getElementById("music");
+  music.volume = 1;
+  music.play().catch(() => {
+    console.log("Check the song file path or browser audio permission.");
+  });
+
+  const screen = document.getElementById("memories");
+
+  for (let i = 0; i < 30; i++) {
+    const sparkle = document.createElement("div");
+    sparkle.className = "sparkle";
+    sparkle.style.left = Math.random() * 100 + "%";
+    sparkle.style.bottom = Math.random() * 20 + "%";
+    sparkle.style.animationDelay = Math.random() * 7 + "s";
+    sparkle.style.animationDuration = (5 + Math.random() * 6) + "s";
+    screen.appendChild(sparkle);
+  }
+}
+</script>
+
+</body>
+</html>
